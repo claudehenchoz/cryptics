@@ -6,6 +6,7 @@ from typing import Callable
 import bs4
 import pandas as pd
 
+from cryptics.generic import is_parsable_generic, parse_generic
 from cryptics.lists import (
     is_parsable_list_type_1,
     is_parsable_list_type_2,
@@ -95,6 +96,9 @@ def try_parse(html: str, source_url: str, logger: logging.Logger | None = None):
     data = None
 
     parsers = [
+        # The generic parser has the highest precision on modern blog posts, so
+        # we try it first and fall back to the legacy parsers.
+        (is_parsable_generic, parse_generic),
         (is_parsable_table_type_1, parse_table_type_1),
         (is_parsable_table_type_2, parse_table_type_2),
         (is_parsable_table_type_3, parse_table_type_3),

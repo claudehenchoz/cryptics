@@ -202,6 +202,17 @@ perspective. Accordingly, there are around a dozen functions, which are called
 successively until one of them doesn't crash and returns a table of parsed
 clues. This parsed table then gets written to SQLite.
 
+Since October 2026, a generic, line-based parser
+([`generic.py`](https://github.com/eigenfoo/cryptics/blob/main/cryptics/generic.py))
+is tried first. It looks for numbered clue lines followed by an uppercase
+answer, and only accepts an answer whose letter count matches the clue's
+enumeration. It is supplemented by two non-blog sources: The Guardian's
+crosswords, whose clues and answers are served as structured JSON (without
+definitions or annotations), and a one-off import of the
+[Cryptonite](https://github.com/aviaefrat/cryptonite) research dataset of Times
+and Telegraph clues (lowercased, without definitions or annotations, and
+licensed for non-commercial use only).
+
 The third part is human evaluation of the clues. Between the human errors from
 the blogger and machine errors from the parsing code, it's informative to
 manually look through a sample of the clues for any errors[^2]. This has

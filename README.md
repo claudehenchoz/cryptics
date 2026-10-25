@@ -19,6 +19,39 @@ This repository contains:
 
 For more information, please see [`cryptics.georgeho.org`](https://cryptics.georgeho.org/).
 
+## Building the dataset locally
+
+The clues themselves are not stored in this repository. To build a local
+SQLite database (`cryptics.sqlite3`) and CSV exports:
+
+```bash
+python -m venv venv
+venv/bin/pip install -r requirements.txt   # venv\Scripts\pip on Windows
+venv/bin/python -m cryptics.update all
+```
+
+This runs the following steps, each of which can also be run on its own
+(`python -m cryptics.update --help`). Every step is resumable and only fetches
+what is new, so re-running it later picks up newly published puzzles.
+
+| Step         | What it does                                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `seed`       | Downloads the published [cryptics.georgeho.org](https://cryptics.georgeho.org/) dataset (~660k clues, up to July 2023). |
+| `cryptonite` | Imports the [Cryptonite](https://github.com/aviaefrat/cryptonite) research dataset (~523k Times and Telegraph clues).   |
+| `blogs`      | Scrapes and parses new posts from bigdave44, fifteensquared, Times for the Times, The Hindu Crossword Corner, etc.     |
+| `guardian`   | Scrapes The Guardian's cryptic, prize, quiptic and Everyman crosswords (structured JSON, with answers).                |
+| `export`     | Writes `exports/clues.csv.gz` (every clue) and `exports/clues-unique.csv.gz` (one row per distinct clue and answer). |
+
+A full scrape takes many hours, because requests are rate-limited to about one
+per second per site. Sources are on different hosts, so you can run them in
+parallel, e.g. `python -m cryptics.update blogs --sources fifteensquared` and
+`python -m cryptics.update guardian` in separate terminals. Use `--limit N` for
+a quick trial run.
+
+Note that the Cryptonite data is distributed for non-commercial research use
+(CC BY-NC 4.0), and that the blog annotations belong to the blogs that wrote
+them. See [`data/README.md`](data/README.md).
+
 ## License
 
 This dataset is made available under the [Open Database License](http://opendatacommons.org/licenses/odbl/1.0/).

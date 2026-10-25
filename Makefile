@@ -40,11 +40,8 @@ test:  # Run mypy and pytest tests.
 	pytest tests/
 
 .PHONY: update
-update:  # Scrape and parse unprocessed blog posts.
-	${PYTHON} cryptics/amuselabs.py
-	${PYTHON} cryptics/jsons.py
-	scripts/download-and-parse-nytimes.sh
-	${PYTHON} cryptics/main.py --sleep-interval=1
+update:  # Seed, scrape and parse new clues, and export them to exports/.
+	${PYTHON} -m cryptics.update all
 
 .PHONY: build
 build: clean build-dbs build-templates test-build  # Build database and documentation for publication.

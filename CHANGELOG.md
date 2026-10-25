@@ -1,3 +1,31 @@
+# v2026.10.25
+
+## Data
+
+- Seed the local database from the published dataset (up to July 2023), and
+  scrape everything published since.
+- New sources:
+  - `timesforthetimes`: Times for the Times, the successor of
+    `times_xwd_times`, via the WordPress API.
+  - `guardian_cryptic`, `guardian_prize`, `guardian_quiptic` and
+    `guardian_everyman`: The Guardian's crosswords, parsed from structured JSON.
+  - `cryptonite_times` and `cryptonite_telegraph`: a one-off import of the
+    Cryptonite dataset (Efrat et al., 2021).
+- Removed sources: The New Yorker (stopped its weekly cryptic in March 2024
+  and no longer uses AmuseLabs), 1across.org (offline) and the NYT variety
+  cryptics (xwordinfo now rejects bots).
+
+## Code
+
+- Added a generic, line-based blog post parser (`cryptics/generic.py`) which
+  is tried before the legacy parsers. It handles the current layouts of
+  bigdave44, fifteensquared, Times for the Times and The Hindu Crossword Corner.
+- Updated bigdave44 and fifteensquared sitemaps for their new domains, and
+  compare URLs after normalization (scheme, `www.`, trailing slashes).
+- Added `python -m cryptics.update` to seed, scrape, parse and export end to
+  end, with resumable steps and polite retries.
+- Use parameterized SQL queries, and support pandas 2.x on Python 3.14.
+
 # v2022.08.14
 
 ## Data

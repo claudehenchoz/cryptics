@@ -46,9 +46,9 @@ def _is_parsable_table_type_1(table: pd.DataFrame):
     return all(
         [
             # There is a row that says ACROSS in all cells
-            (table.astype(str).applymap(str.lower) == "across").all(axis=1).any(),
+            (table.astype(str).map(str.lower) == "across").all(axis=1).any(),
             # There is a row that says DOWN in all cells
-            (table.astype(str).applymap(str.lower) == "down").all(axis=1).any(),
+            (table.astype(str).map(str.lower) == "down").all(axis=1).any(),
             # Asides from the ACROSS and DOWN rows, the first two columns are exactly half NaN
             2 * table[[0, 1]].isna().all(axis=1).sum() == table.shape[0] - 2,
             # The first column (except for the ACROSS and DOWN rows) is all numeric
@@ -174,9 +174,9 @@ def _is_parsable_table_type_2(table: pd.DataFrame):
     return all(
         [
             # There is a row that says ACROSS in all cells
-            (table.astype(str).applymap(str.lower) == "across").all(axis=1).any(),
+            (table.astype(str).map(str.lower) == "across").all(axis=1).any(),
             # There is a row that says DOWN in all cells
-            (table.astype(str).applymap(str.lower) == "down").all(axis=1).any(),
+            (table.astype(str).map(str.lower) == "down").all(axis=1).any(),
             # The first column (except for the ACROSS and DOWN rows) is all numeric
             # This is what we expect to be the clue numbers
             # FIXME: double entry?
@@ -284,7 +284,7 @@ def _is_parsable_table_type_3(table: pd.DataFrame):
             # The index looks like ['Across', 'Across.1', 'Across.2', ...]
             all(["across" in column.lower() for column in table.columns]),
             # There is a row that says 'Down' in all cells
-            (table.astype(str).applymap(str.lower) == "down").all(axis=1).any(),
+            (table.astype(str).map(str.lower) == "down").all(axis=1).any(),
             # The first column (except for the 'Across', 'Down' and 'Clue No' rows)
             # is all numeric. This is what we expect to be the clue numbers
             all(

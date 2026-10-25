@@ -25,14 +25,15 @@ def parse_unparsed_html(
         with sqlite3.connect(SQLITE_DATABASE) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                f"SELECT location FROM raw WHERE content_type = 'html' AND source = '{source}' AND NOT is_parsed AND datetime_requested >= '{datetime_requested}';"
+                "SELECT location FROM raw WHERE content_type = 'html' AND source = ? AND NOT is_parsed AND datetime_requested >= ?;",
+                (source, datetime_requested),
             )
             urls = [url for url, in cursor.fetchall()]
 
         for i, url in enumerate(urls):
             with sqlite3.connect(SQLITE_DATABASE) as conn:
                 cursor = conn.cursor()
-                cursor.execute(f"SELECT content FROM raw WHERE location = '{url}';")
+                cursor.execute("SELECT content FROM raw WHERE location = ?;", (url,))
                 (html,) = cursor.fetchone()
 
             data = None
@@ -51,8 +52,8 @@ def parse_unparsed_html(
                 data.to_sql(f"clues", conn, if_exists="append", index=False)
 
                 cursor = conn.cursor()
-                sql = f"UPDATE raw SET is_parsed = TRUE, datetime_parsed = datetime('now') WHERE location = '{url}';"
-                cursor.execute(sql)
+                sql = "UPDATE raw SET is_parsed = TRUE, datetime_parsed = datetime('now') WHERE location = ?;"
+                cursor.execute(sql, (url,))
 
 
 if __name__ == "__main__":
@@ -66,11 +67,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--datetime-requested", type=str, default=datetime.now().strftime("%Y-%m-%d")
     )
+    parser.add_argument(
+        "--sources", nargs="+", choices=list(BLOG_SOURCES), default=list(BLOG_SOURCES)
+    )
+    parser.add_argument("--limit", type=int, default=None)
     args = parser.parse_args()
+    sources = {source: BLOG_SOURCES[source] for source in args.sources}
 
     if args.scrape:
-        scrape_blogs(sources=BLOG_SOURCES, sleep_interval=args.sleep_interval)
+        scrape_blogs(
+            sources=sources, sleep_interval=args.sleep_interval, limit=args.limit
+        )
 
     parse_unparsed_html(
-        sources=BLOG_SOURCES, datetime_requested=args.datetime_requested, logger=logger
+        sources=sources, datetime_requested=args.datetime_requested, logger=logger
     )

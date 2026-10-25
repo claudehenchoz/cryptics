@@ -140,3 +140,9 @@ cryptics/*.txt
 
 # Built documentation
 templates/*
+cryptics.sqlite3-*
+
+# Downloaded datasets, exports and scrape logs
+downloads/
+exports/
+logs-*.out

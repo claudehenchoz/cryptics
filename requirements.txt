@@ -9,11 +9,11 @@ isort
 jupyter
 lxml
 mypy
-nb_black
 numpy
-pandas
+pandas<3
 pre-commit
 puzpy
+python-dateutil
 pytest
 pytest-mock
 requests

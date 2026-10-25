@@ -51,6 +51,18 @@ def search(pattern: str, string: str, **kwargs) -> Match[str]:
         raise RuntimeError(f"No match for {pattern}")
 
 
+def normalize_url(url: str) -> str:
+    """Normalize a URL for comparison: drop the scheme, a leading "www." and
+    any trailing slash, and lowercase the host. Blogs occasionally migrate from
+    http to https or drop the "www.", which should not cause re-scraping."""
+    url = re.sub(r"^https?://", "", url.strip())
+    host, _, path = url.partition("/")
+    host = host.lower()
+    if host.startswith("www."):
+        host = host[len("www.") :]
+    return f"{host}/{path}".rstrip("/")
+
+
 def filter_strings_by_keyword(strings: Iterable[str], keywords: Iterable[str]):
     """Filter a list of strings to only those containing at least one keyword.
 
@@ -62,6 +74,19 @@ def filter_strings_by_keyword(strings: Iterable[str], keywords: Iterable[str]):
         for string in strings
         if any([keyword.lower() in string.lower() for keyword in keywords])
     ]
+
+
+def filter_strings_by_pattern(strings: Iterable[str], pattern: str):
+    """Filter a list of strings to only those matching a regex pattern.
+
+    strings: strings to filter
+    pattern: regex pattern to search for in each string.
+    """
+    return [string for string in strings if re.search(pattern, string)]
+
+
+# Blog posts (as opposed to pages, tags, etc.) have dates in their URLs.
+DATED_URL_PATTERN = r"/\d{4}/\d{2}/\d{2}/"
 
 
 PUZZLE_NAME_EXTRACTORS = {
@@ -89,6 +114,9 @@ PUZZLE_NAME_EXTRACTORS = {
     "thenationcryptic": lambda source_url, _: (
         search(r"no-[0-9]*", source_url).group().title().replace("-", " ")
     ),
+    "timesforthetimes": lambda _, soup: (
+        " ".join(re.split(r" [|–-] Times for [Tt]he Times", soup.title.text)[0].split())
+    ),
 }
 
 PUZZLE_DATE_EXTRACTORS = {
@@ -111,6 +139,12 @@ PUZZLE_DATE_EXTRACTORS = {
     ),
     "thenationcryptic": lambda _, soup: (
         parser.parse(soup.find("h2", "date-header").text.strip()).strftime("%Y-%m-%d")
+    ),
+    "timesforthetimes": lambda _, soup: (
+        # e.g. <time class="entry-date published" datetime="24th May 2019 at 2:02 AM">
+        parser.parse(
+            soup.find("time", class_="published")["datetime"], fuzzy=True
+        ).strftime("%Y-%m-%d")
     ),
 }
 
@@ -147,6 +181,7 @@ PUZZLE_URL_EXTRACTORS = {
             ),
         ),
         ("times-xwd-times", r"^https?://www.thetimes.co.uk/puzzles/.+"),
+        ("timesforthetimes", r"^https?://www.thetimes.(co.uk|com)/puzzles/.+"),
         ("thenationcryptic", r"https?://www.thenation.com/article/.+"),
     ]
 }
@@ -162,7 +197,7 @@ def extract_string_from_url_and_soup(
         if source_url_fragment in url:
             try:
                 return extract_puzzle_name_func(url, soup).strip()
-            except AttributeError:
+            except (AttributeError, KeyError, TypeError, RuntimeError):
                 pass
     return None
 
